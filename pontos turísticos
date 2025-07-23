@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interativo: Roteiros de Viagem no Chile</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        .leaflet-popup-content {
+            font-size: 14px;
+        }
+        .legend {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            line-height: 18px;
+            color: #555;
+        }
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        // 1. Initialize Map
+        const map = L.map('map').setView([-33.45, -70.67], 9);
+
+        // 2. Add Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 3. Define Locations
+        const locations = {
+            santiago: { lat: -33.4489, lng: -70.6693, name: "Santiago (Base)" },
+            plazaDeArmas: { lat: -33.4379, lng: -70.6505, name: "Plaza de Armas" },
+            laMoneda: { lat: -33.4430, lng: -70.6539, name: "Palácio de La Moneda" },
+            santaLucia: { lat: -33.4397, lng: -70.6425, name: "Cerro Santa Lucía" },
+            valleNevado: { lat: -33.3532, lng: -70.2536, name: "Valle Nevado" },
+            parqueSafari: { lat: -34.2375, lng: -70.7042, name: "Parque Safari Chile" },
+            portillo: { lat: -32.8369, lng: -70.1292, name: "Portillo & Laguna del Inca" },
+            vinaDelMar: { lat: -33.0246, lng: -71.5518, name: "Viña del Mar" },
+            valparaiso: { lat: -33.0472, lng: -71.6127, name: "Valparaíso" }
+        };
+
+        // 4. Create Layers for Each Day
+        
+        // --- Dia 1: City Tour Santiago ---
+        const cityTourMarkers = L.layerGroup([
+            L.marker([locations.plazaDeArmas.lat, locations.plazaDeArmas.lng]).bindPopup("<b>Sábado:</b> Plaza de Armas"),
+            L.marker([locations.laMoneda.lat, locations.laMoneda.lng]).bindPopup("<b>Sábado:</b> Palácio de La Moneda"),
+            L.marker([locations.santaLucia.lat, locations.santaLucia.lng]).bindPopup("<b>Sábado:</b> Cerro Santa Lucía")
+        ]);
+
+        // --- Dia 2: Valle Nevado ---
+        const valleNevadoRoute = L.polyline([
+            [locations.santiago.lat, locations.santiago.lng],
+            [locations.valleNevado.lat, locations.valleNevado.lng]
+        ], { color: 'red' });
+        const valleNevadoMarker = L.marker([locations.valleNevado.lat, locations.valleNevado.lng]).bindPopup("<b>Segunda-feira:</b> Valle Nevado");
+        const valleNevadoLayer = L.layerGroup([valleNevadoRoute, valleNevadoMarker]);
+
+        // --- Dia 3: Parque Safari ---
+        const safariRoute = L.polyline([
+            [locations.santiago.lat, locations.santiago.lng],
+            [locations.parqueSafari.lat, locations.parqueSafari.lng]
+        ], { color: 'green' });
+        const safariMarker = L.marker([locations.parqueSafari.lat, locations.parqueSafari.lng]).bindPopup("<b>Terça-feira:</b> Parque Safari Chile");
+        const safariLayer = L.layerGroup([safariRoute, safariMarker]);
+
+        // --- Dia 4: Portillo ---
+        const portilloRoute = L.polyline([
+            [locations.santiago.lat, locations.santiago.lng],
+            [locations.portillo.lat, locations.portillo.lng]
+        ], { color: 'purple' });
+        const portilloMarker = L.marker([locations.portillo.lat, locations.portillo.lng]).bindPopup("<b>Quarta-feira:</b> Portillo<br><i>(Passeio com recomendação de substituição)</i>");
+        const portilloLayer = L.layerGroup([portilloRoute, portilloMarker]);
+
+        // --- Dia 5: Litoral ---
+        const litoralRoute = L.polyline([
+            [locations.santiago.lat, locations.santiago.lng],
+            [locations.valparaiso.lat, locations.valparaiso.lng] // Pointing to Valparaiso as the general destination
+        ], { color: 'orange' });
+        const vinaMarker = L.marker([locations.vinaDelMar.lat, locations.vinaDelMar.lng]).bindPopup("<b>Quinta-feira:</b> Viña del Mar");
+        const valpoMarker = L.marker([locations.valparaiso.lat, locations.valparaiso.lng]).bindPopup("<b>Quinta-feira:</b> Valparaíso");
+        const litoralLayer = L.layerGroup([litoralRoute, vinaMarker, valpoMarker]);
+        
+        // Add a marker for Santiago base
+        L.marker([locations.santiago.lat, locations.santiago.lng]).bindPopup("<b>Ponto de Partida/Retorno:</b> Santiago").addTo(map);
+
+        // 5. Layer Control
+        const overlayMaps = {
+            "Sábado: City Tour Santiago": cityTourMarkers,
+            "Segunda: Valle Nevado": valleNevadoLayer,
+            "Terça: Parque Safari": safariLayer,
+            "Quarta: Portillo (Não Rec.)": portilloLayer,
+            "Quinta: Viña & Valparaíso": litoralLayer
+        };
+
+        // Add layers to map by default
+        cityTourMarkers.addTo(map);
+        valleNevadoLayer.addTo(map);
+        safariLayer.addTo(map);
+        portilloLayer.addTo(map);
+        litoralLayer.addTo(map);
+
+        L.control.layers(null, overlayMaps).addTo(map);
+
+        // 6. Legend
+        const legend = L.control({position: 'bottomright'});
+
+        legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            const days = [
+                { color: 'blue', label: 'City Tour (Pontos)' },
+                { color: 'red', label: 'Valle Nevado' },
+                { color: 'green', label: 'Parque Safari' },
+                { color: 'purple', label: 'Portillo' },
+                { color: 'orange', label: 'Viña & Valparaíso' }
+            ];
+            
+            div.innerHTML += '<h4>Roteiros Diários</h4>';
+            for (let i = 0; i < days.length; i++) {
+                div.innerHTML +=
+                    '<i style="background:' + days[i].color + '"></i> ' +
+                    days[i].label + '<br>';
+            }
+
+            return div;
+        };
+
+        legend.addTo(map);
+
+    </script>
+
+</body>
+</html>
